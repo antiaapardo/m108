@@ -109,6 +109,12 @@ function mostrarCamposManuales(sesion) {
     const elegidoTipo = document.querySelector('input[name="tipo_sesion"]:checked');
     const elegidoDescanso = document.querySelector('input[name="estructura_descanso"]:checked');
     const elegidoAsistencia = document.querySelector('input[name="asistencia_tipica"]:checked');
+    const numEstudiantes = Number(document.getElementById('num_estudiantes').value) || null;
+
+    if (!elegidoTipo || !elegidoDescanso || !numEstudiantes || !elegidoAsistencia) {
+      mostrarAviso(t('docente.aviso_campos'));
+      return;
+    }
 
     await api('/api/v1/sesion/docente', {
       method: 'POST',
@@ -116,10 +122,10 @@ function mostrarCamposManuales(sesion) {
         aula: sesion.aula,
         accion: 'actualizar',
         sesion_id: sesion.id,
-        tipo_sesion: elegidoTipo ? elegidoTipo.value : null,
-        estructura_descanso: elegidoDescanso ? elegidoDescanso.value : null,
-        num_estudiantes: Number(document.getElementById('num_estudiantes').value) || null,
-        asistencia_tipica: elegidoAsistencia ? elegidoAsistencia.value : null,
+        tipo_sesion: elegidoTipo.value,
+        estructura_descanso: elegidoDescanso.value,
+        num_estudiantes: numEstudiantes,
+        asistencia_tipica: elegidoAsistencia.value,
         incidencias: document.getElementById('incidencias').value.trim() || null,
       },
     });
