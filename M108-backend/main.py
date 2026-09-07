@@ -101,8 +101,8 @@ def calcular_minutos_desde_anterior(aula: str, momento: datetime) -> int | None:
 
 @app.post("/api/v1/sesion/docente")
 def gestionar_sesion_docente(datos: SesionDocente):
-    momento = datetime.fromisoformat(datos.hora_override) if datos.hora_override else datetime.now()
-
+    momento = datetime.fromisoformat(datos.hora_override) if datos.hora_override else datetime.now(timezone.utc)
+    
     if datos.accion == "actualizar":
         marcar_fin = momento if (datos.hora_override or datos.marcar_fin) else None
 
