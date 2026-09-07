@@ -1,5 +1,5 @@
 const DOCENTE_KEY = 'lsef_docente';
-const docentesDisponibles = ['Raquel', 'Pablo', 'Moisés'];
+const docentesDisponibles = ['Raquel', 'Pablo'];
 
 const valoresTipoSesion = ['Magistral/expositiva', 'Resolución de problemas', 'Combinada'];
 const valoresEstructuraDescanso = ['Descanso a mitad de sesión', 'Sin descanso'];

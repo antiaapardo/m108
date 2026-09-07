@@ -52,12 +52,17 @@ function mostrarConsentimiento() {
     }
 
     let codigo = localStorage.getItem(CODIGO_KEY);
+    const codigoNuevo = !codigo;
     if (!codigo) {
       const datos = await api('/api/v1/estudiante/token', { method: 'POST' });
       codigo = datos.codigo;
       localStorage.setItem(CODIGO_KEY, codigo);
     }
-    mostrarCodigo(codigo);
+    if (codigoNuevo) {
+      mostrarCodigo(codigo);
+    } else {
+      mostrarBasal();
+    }
   });
 }
 function mostrarRecuperarCodigo() {
