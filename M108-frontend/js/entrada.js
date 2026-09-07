@@ -32,23 +32,25 @@ function renderPasoEntrada() {
   const pregunta = preguntasEntrada[pasoEntrada];
   const clave = `entrada.preguntas.${pregunta.id}`;
   const progreso = t('common.progress', { n: pasoEntrada + 1, total: preguntasEntrada.length });
+  const respuestaPrevia = respuestasEntrada[pregunta.id];
 
   let camposHtml = '';
   if (pregunta.tipo === 'escala') {
     const traduccion = t(clave);
     let botones = '';
     for (let valor = pregunta.min; valor <= pregunta.max; valor += 1) {
-      botones += `<button type="button" class="escala-boton" data-valor="${valor}">${valor}</button>`;
+      const seleccionado = String(valor) === respuestaPrevia ? ' seleccionado' : '';
+      botones += `<button type="button" class="escala-boton${seleccionado}" data-valor="${valor}">${valor}</button>`;
     }
     camposHtml = `
       <div class="escala-fila" id="escala-${pregunta.id}">${botones}</div>
       <div class="escala-etiquetas"><span>${traduccion.etiquetaMin}</span><span>${traduccion.etiquetaMax}</span></div>
-      <input type="hidden" id="valor-${pregunta.id}" />
+      <input type="hidden" id="valor-${pregunta.id}" value="${respuestaPrevia ?? ''}" />
     `;
   } else {
     const etiquetas = t(`${clave}.opciones`);
     camposHtml = pregunta.valores.map((valor, i) => `
-      <label class="opcion"><input type="radio" name="campo-${pregunta.id}" value="${valor}" /> ${etiquetas[i]}</label>
+      <label class="opcion"><input type="radio" name="campo-${pregunta.id}" value="${valor}" ${valor === respuestaPrevia ? 'checked' : ''} /> ${etiquetas[i]}</label>
     `).join('');
   }
 
@@ -58,9 +60,17 @@ function renderPasoEntrada() {
     <h2>${t(`${clave}.titulo`)}</h2>
     <div class="pregunta-wrap">${camposHtml}</div>
     <button id="btn-siguiente-entrada">${pasoEntrada === preguntasEntrada.length - 1 ? t('common.submit') : t('common.next')}</button>
+    ${pasoEntrada > 0 ? `<button id="btn-atras-entrada" class="boton-secundario">${t('common.back')}</button>` : ''}
   `;
 
   activarSelectorIdioma(renderPasoEntrada);
+
+  if (pasoEntrada > 0) {
+    document.getElementById('btn-atras-entrada').addEventListener('click', () => {
+      pasoEntrada -= 1;
+      renderPasoEntrada();
+    });
+  }
 
   if (pregunta.tipo === 'escala') {
     document.querySelectorAll(`#escala-${pregunta.id} .escala-boton`).forEach((boton) => {

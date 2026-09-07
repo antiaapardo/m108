@@ -7,6 +7,7 @@ const traducciones = {
     common: {
       loading: 'Cargando…',
       next: 'Siguiente',
+      back: 'Atrás',
       submit: 'Enviar',
       progress: 'Pregunta {n} de {total}',
       answer_required: 'Por favor, responde antes de continuar.',
@@ -141,6 +142,7 @@ const traducciones = {
     common: {
       loading: 'Loading…',
       next: 'Next',
+      back: 'Back',
       submit: 'Submit',
       progress: 'Question {n} of {total}',
       answer_required: 'Please answer before continuing.',
@@ -275,6 +277,7 @@ const traducciones = {
     common: {
       loading: 'Cargando…',
       next: 'Seguinte',
+      back: 'Atrás',
       submit: 'Enviar',
       progress: 'Pregunta {n} de {total}',
       answer_required: 'Por favor, responde antes de continuar.',

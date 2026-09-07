@@ -22,41 +22,53 @@ function renderPasoSalida() {
   const pregunta = preguntasSalida[pasoSalida];
   const clave = `salida.preguntas.${pregunta.id}`;
   const progreso = t('common.progress', { n: pasoSalida + 1, total: preguntasSalida.length });
+  const respuestaPrevia = respuestasSalida[pregunta.id];
 
   let camposHtml = '';
   if (pregunta.tipo === 'escala') {
     const traduccion = t(clave);
     let botones = '';
     for (let valor = pregunta.min; valor <= pregunta.max; valor += 1) {
-      botones += `<button type="button" class="escala-boton" data-valor="${valor}">${valor}</button>`;
+      const seleccionado = String(valor) === respuestaPrevia ? ' seleccionado' : '';
+      botones += `<button type="button" class="escala-boton${seleccionado}" data-valor="${valor}">${valor}</button>`;
     }
     camposHtml = `
       <div class="escala-fila" id="escala-${pregunta.id}">${botones}</div>
       <div class="escala-etiquetas"><span>${traduccion.etiquetaMin}</span><span>${traduccion.etiquetaMax}</span></div>
-      <input type="hidden" id="valor-${pregunta.id}" />
+      <input type="hidden" id="valor-${pregunta.id}" value="${respuestaPrevia ?? ''}" />
     `;
   } else if (pregunta.tipo === 'radio') {
     const etiquetas = t(`${clave}.opciones`);
     camposHtml = pregunta.valores.map((valor, i) => `
-      <label class="opcion"><input type="radio" name="campo-${pregunta.id}" value="${valor}" /> ${etiquetas[i]}</label>
+      <label class="opcion"><input type="radio" name="campo-${pregunta.id}" value="${valor}" ${valor === respuestaPrevia ? 'checked' : ''} /> ${etiquetas[i]}</label>
     `).join('');
   } else if (pregunta.tipo === 'pvt') {
     camposHtml = `
       <p>${t('salida.pvt_instrucciones')}</p>
       <div class="pvt-caja" id="pvt-caja">${t('salida.pvt_preparate')}</div>
-      <input type="hidden" id="valor-${pregunta.id}" />
+      <input type="hidden" id="valor-${pregunta.id}" value="${respuestaPrevia ?? ''}" />
     `;
   }
+
+  const bloquearSiguiente = pregunta.tipo === 'pvt' && !respuestaPrevia;
 
   appEl.innerHTML = `
     ${selectorIdiomaHtml()}
     <p>${progreso}</p>
     <h2>${t(`${clave}.titulo`)}</h2>
     <div class="pregunta-wrap">${camposHtml}</div>
-    <button id="btn-siguiente-salida" ${pregunta.tipo === 'pvt' ? 'disabled' : ''}>${pasoSalida === preguntasSalida.length - 1 ? t('common.submit') : t('common.next')}</button>
+    <button id="btn-siguiente-salida" ${bloquearSiguiente ? 'disabled' : ''}>${pasoSalida === preguntasSalida.length - 1 ? t('common.submit') : t('common.next')}</button>
+    ${pasoSalida > 0 ? `<button id="btn-atras-salida" class="boton-secundario">${t('common.back')}</button>` : ''}
   `;
 
   activarSelectorIdioma(renderPasoSalida);
+
+  if (pasoSalida > 0) {
+    document.getElementById('btn-atras-salida').addEventListener('click', () => {
+      pasoSalida -= 1;
+      renderPasoSalida();
+    });
+  }
 
   if (pregunta.tipo === 'escala') {
     document.querySelectorAll(`#escala-${pregunta.id} .escala-boton`).forEach((boton) => {
