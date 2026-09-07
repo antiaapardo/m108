@@ -52,14 +52,19 @@ function mostrarInicioSesion(aula, docente) {
     ${selectorIdiomaHtml()}
     <h1>${t('docente.sesion_titulo', { aula })}</h1>
     <p>${t('docente.sesion_texto', { docente })}</p>
+
+    <p><strong>${t('docente.materia_label')}</strong></p>
+    <input type="text" id="materia" placeholder="${t('docente.materia_placeholder')}" />
+
     <button id="btn-iniciar-sesion">${t('docente.iniciar_sesion')}</button>
   `;
 
   activarSelectorIdioma(() => mostrarInicioSesion(aula, docente));
   document.getElementById('btn-iniciar-sesion').addEventListener('click', async () => {
+    const materia = document.getElementById('materia').value.trim() || null;
     const resultado = await api('/api/v1/sesion/docente', {
       method: 'POST',
-      body: { aula, docente, accion: 'inicio' },
+      body: { aula, docente, materia, accion: 'inicio' },
     });
     mostrarCamposManuales(resultado);
   });
@@ -96,6 +101,8 @@ function mostrarCamposManuales(sesion) {
 
     <p><strong>${t('docente.asistencia_label')}</strong></p>
     ${asistenciaHtml}
+
+    <p><strong>${t('docente.materia_label')}:</strong> ${sesion.materia || '—'}</p>
 
     <p><strong>${t('docente.incidencias_label')}</strong></p>
     <input type="text" id="incidencias" placeholder="${t('docente.incidencias_placeholder')}" />
