@@ -100,37 +100,9 @@ function mostrarCamposManuales(sesion) {
     <p><strong>${t('docente.incidencias_label')}</strong></p>
     <input type="text" id="incidencias" placeholder="${t('docente.incidencias_placeholder')}" />
 
-    <button id="btn-guardar-campos">${t('docente.guardar')}</button>
-    <button id="btn-marcar-fin" class="boton-secundario" style="margin-top: 0.75rem;">${t('docente.marcar_fin')}</button>  `;
+    <button id="btn-marcar-fin">${t('docente.marcar_fin')}</button>  `;
 
   activarSelectorIdioma(() => mostrarCamposManuales(sesion));
-
-  document.getElementById('btn-guardar-campos').addEventListener('click', async () => {
-    const elegidoTipo = document.querySelector('input[name="tipo_sesion"]:checked');
-    const elegidoDescanso = document.querySelector('input[name="estructura_descanso"]:checked');
-    const elegidoAsistencia = document.querySelector('input[name="asistencia_tipica"]:checked');
-    const numEstudiantes = Number(document.getElementById('num_estudiantes').value) || null;
-
-    if (!elegidoTipo || !elegidoDescanso || !numEstudiantes || !elegidoAsistencia) {
-      mostrarAviso(t('docente.aviso_campos'));
-      return;
-    }
-
-    await api('/api/v1/sesion/docente', {
-      method: 'POST',
-      body: {
-        aula: sesion.aula,
-        accion: 'actualizar',
-        sesion_id: sesion.id,
-        tipo_sesion: elegidoTipo.value,
-        estructura_descanso: elegidoDescanso.value,
-        num_estudiantes: numEstudiantes,
-        asistencia_tipica: elegidoAsistencia.value,
-        incidencias: document.getElementById('incidencias').value.trim() || null,
-      },
-    });
-    mostrarAviso(t('docente.aviso_guardado'));
-  });
 
   document.getElementById('btn-marcar-fin').addEventListener('click', async () => {
     const elegidoTipo = document.querySelector('input[name="tipo_sesion"]:checked');
