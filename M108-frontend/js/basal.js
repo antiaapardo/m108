@@ -22,17 +22,19 @@ function renderPasoBasal() {
   const clave = `basal.preguntas.${pregunta.id}`;
   const progreso = t('common.progress', { n: pasoActual + 1, total: preguntasBasal.length });
   const etiquetas = pregunta.valores ? t(`${clave}.opciones`) : null;
+  const respuestaPrevia = respuestasBasal[pregunta.id];
 
   let camposHtml = '';
   if (pregunta.tipo === 'numero') {
-    camposHtml = `<input type="number" id="campo-${pregunta.id}" />`;
+    camposHtml = `<input type="number" id="campo-${pregunta.id}" value="${respuestaPrevia ?? ''}" />`;
   } else if (pregunta.tipo === 'radio') {
     camposHtml = pregunta.valores.map((valor, i) => `
-      <label class="opcion"><input type="radio" name="campo-${pregunta.id}" value="${valor}" /> ${etiquetas[i]}</label>
+      <label class="opcion"><input type="radio" name="campo-${pregunta.id}" value="${valor}" ${valor === respuestaPrevia ? 'checked' : ''} /> ${etiquetas[i]}</label>
     `).join('');
   } else if (pregunta.tipo === 'checkbox') {
+    const previasArray = Array.isArray(respuestaPrevia) ? respuestaPrevia : [];
     camposHtml = pregunta.valores.map((valor, i) => `
-      <label class="opcion"><input type="checkbox" name="campo-${pregunta.id}" value="${valor}" /> ${etiquetas[i]}</label>
+      <label class="opcion"><input type="checkbox" name="campo-${pregunta.id}" value="${valor}" ${previasArray.includes(valor) ? 'checked' : ''} /> ${etiquetas[i]}</label>
     `).join('');
   }
 
@@ -42,9 +44,18 @@ function renderPasoBasal() {
     <h2>${t(`${clave}.titulo`)}</h2>
     ${camposHtml}
     <button id="btn-siguiente">${pasoActual === preguntasBasal.length - 1 ? t('common.submit') : t('common.next')}</button>
+    ${pasoActual > 0 ? `<button id="btn-atras" class="boton-secundario">${t('common.back')}</button>` : ''}
   `;
 
   activarSelectorIdioma(renderPasoBasal);
+
+  if (pasoActual > 0) {
+    document.getElementById('btn-atras').addEventListener('click', () => {
+      pasoActual -= 1;
+      renderPasoBasal();
+    });
+  }
+
   document.getElementById('btn-siguiente').addEventListener('click', async () => {
     if (!respuestaCompletada(pregunta)) {
       mostrarAviso(t('common.answer_required'));
