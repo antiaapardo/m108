@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: m108
+      POSTGRES_USER: m108_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - m108_pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    secrets:
+      - db_password
+    ports:
+      - "5432:5432"
+
+  web:
+    build: ./M108-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: m108
+      DB_USER: m108_user
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    ports:
+      - "8080:8080"
+
+volumes:
+  m108_pgdata:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
