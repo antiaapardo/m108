@@ -5,7 +5,6 @@ class EncuestaBasal(BaseModel):
     codigo: str
     consentimiento: bool
     edad: Optional[int] = None
-    genero: Optional[str] = None
     condicion_termorregulacion: Optional[str] = None
     horas_sueno: Optional[str] = None
     calidad_sueno: Optional[str] = None

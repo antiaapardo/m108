@@ -14,7 +14,6 @@ CREATE TABLE encuesta_basal (
     id              BIGSERIAL PRIMARY KEY,
     codigo          TEXT NOT NULL REFERENCES estudiante(codigo),
     edad            INT,
-    genero          TEXT,
     condicion_termorregulacion TEXT,
     horas_sueno     TEXT,
     calidad_sueno   TEXT,

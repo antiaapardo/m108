@@ -42,14 +42,14 @@ def enviar_basal(datos: EncuestaBasal):
         cur.execute(
             """
             INSERT INTO encuesta_basal
-                (codigo, edad, genero, condicion_termorregulacion, horas_sueno,
+                (codigo, edad, condicion_termorregulacion, horas_sueno,
                  calidad_sueno, frecuencia_cafeina, sensibilidad_termica,
                  factores_ubicacion, nivel_atencion)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, respondido_en
             """,
             (
-                datos.codigo, datos.edad, datos.genero,
+                datos.codigo, datos.edad,
                 datos.condicion_termorregulacion, datos.horas_sueno,
                 datos.calidad_sueno, datos.frecuencia_cafeina,
                 datos.sensibilidad_termica, datos.factores_ubicacion,

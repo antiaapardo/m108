@@ -113,7 +113,6 @@ async function enviarBasal() {
       codigo,
       consentimiento: true,
       edad: respuestasBasal.PA1,
-      genero: respuestasBasal.PA2,
       horas_sueno: respuestasBasal.PB1,
       calidad_sueno: respuestasBasal.PB2,
       frecuencia_cafeina: respuestasBasal.PC1,
