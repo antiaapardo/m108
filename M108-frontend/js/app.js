@@ -12,6 +12,12 @@ async function iniciar() {
 
   const mesa = parametrosUrl();
   if (mesa.aula) {
+    const sesion = await api(`/api/v1/sesion/activa?aula=${mesa.aula}`);
+    if (sesion.error) {
+      appEl.innerHTML = `${selectorIdiomaHtml()}<p>${t('entrada.espera_sesion')}</p>`;
+      activarSelectorIdioma(iniciar);
+      return;
+    }
     mostrarEleccionEncuesta(mesa);
     return;
   }
