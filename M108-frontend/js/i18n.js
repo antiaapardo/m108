@@ -49,6 +49,7 @@ const traducciones = {
     basal: {
       gracias_titulo: '¡Listo!',
       gracias: 'Gracias, encuesta registrada (id {id}).',
+      registrada_sin_sesion: 'Tu encuesta basal ha quedado registrada. No podrás continuar con la encuesta de entrada hasta que el/la docente inicie una sesión en el aula.',
       preguntas: {
         PA1: { titulo: 'Edad' },
         PB1: { titulo: '¿Cuántas horas duermes habitualmente durante los días lectivos?',
@@ -192,6 +193,7 @@ const traducciones = {
     basal: {
       gracias_titulo: 'All done!',
       gracias: 'Thank you, survey recorded (id {id}).',
+      registrada_sin_sesion: 'Your baseline survey has been recorded. You will not be able to continue with the entry survey until the teacher starts a session in the classroom.',
       preguntas: {
         PA1: { titulo: 'Age' },
         PB1: { titulo: 'How many hours do you usually sleep on class days?',
@@ -335,6 +337,7 @@ const traducciones = {
     basal: {
       gracias_titulo: 'Feito!',
       gracias: 'Grazas, enquisa rexistrada (id {id}).',
+      registrada_sin_sesion: 'A túa enquisa basal quedou rexistrada. Non poderás continuar coa enquisa de entrada ata que o/a docente inicie unha sesión na aula.',
       preguntas: {
         PA1: { titulo: 'Idade' },
         PB1: { titulo: 'Cantas horas durmes habitualmente durante os días lectivos?',

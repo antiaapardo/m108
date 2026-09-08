@@ -124,13 +124,23 @@ async function enviarBasal() {
   });
 
   const mesa = parametrosUrl();
-  if (mesa.aula) {
-    mostrarEntrada(mesa);
-  } else {
+  if (!mesa.aula) {
     mostrarGraciasBasal(resultado.id);
+    return;
+  }
+
+  const sesion = await api(`/api/v1/sesion/activa?aula=${mesa.aula}`);
+  if (sesion.error) {
+    mostrarBasalSinSesion();
+  } else {
+    mostrarEntrada(mesa);
   }
 }
 
 function mostrarGraciasBasal(id) {
   mostrarPantallaGracias('basal.gracias_titulo', 'basal.gracias', { id });
+}
+
+function mostrarBasalSinSesion() {
+  mostrarPantallaGracias('basal.gracias_titulo', 'basal.registrada_sin_sesion');
 }
