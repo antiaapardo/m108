@@ -5,6 +5,22 @@ const valoresTipoSesion = ['Magistral/expositiva', 'Resolución de problemas', '
 const valoresEstructuraDescanso = ['Descanso a mitad de sesión', 'Sin descanso'];
 const valoresAsistencia = ['Asistencia habitual', 'Asistencia notablemente menor', 'Asistencia notablemente mayor'];
 
+
+let sesionEnCurso = null;
+
+function cerrarSesionAlSalir() {
+  if (!sesionEnCurso) return;
+  const cuerpo = JSON.stringify({
+    aula: sesionEnCurso.aula,
+    accion: 'actualizar',
+    sesion_id: sesionEnCurso.id,
+    marcar_fin: true,
+  });
+  navigator.sendBeacon('/api/v1/sesion/docente', new Blob([cuerpo], { type: 'application/json' }));
+}
+
+window.addEventListener('pagehide', cerrarSesionAlSalir);
+
 function iniciarPantallaDocente() {
   const { aula } = parametrosUrl();
 
@@ -61,11 +77,16 @@ function mostrarInicioSesion(aula, docente) {
 
   activarSelectorIdioma(() => mostrarInicioSesion(aula, docente));
   document.getElementById('btn-iniciar-sesion').addEventListener('click', async () => {
-    const materia = document.getElementById('materia').value.trim() || null;
+    const materia = document.getElementById('materia').value.trim();
+    if (!materia) {
+      mostrarAviso(t('docente.aviso_campos'));
+      return;
+    }
     const resultado = await api('/api/v1/sesion/docente', {
       method: 'POST',
       body: { aula, docente, materia, accion: 'inicio' },
     });
+    sesionEnCurso = resultado;
     mostrarCamposManuales(resultado);
   });
 }
@@ -136,6 +157,7 @@ function mostrarCamposManuales(sesion) {
         marcar_fin: true,
       },
     });
+    sesionEnCurso = null;
     mostrarFinSesion();
   });
 }
