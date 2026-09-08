@@ -21,6 +21,13 @@ function cerrarSesionAlSalir() {
 
 window.addEventListener('pagehide', cerrarSesionAlSalir);
 
+window.addEventListener('beforeunload', (e) => {
+  if (!sesionEnCurso) return;
+  e.preventDefault();
+  e.returnValue = t('docente.aviso_salir');
+  return e.returnValue;
+});
+
 function iniciarPantallaDocente() {
   const { aula } = parametrosUrl();
 
@@ -79,7 +86,7 @@ function mostrarInicioSesion(aula, docente) {
   document.getElementById('btn-iniciar-sesion').addEventListener('click', async () => {
     const materia = document.getElementById('materia').value.trim();
     if (!materia) {
-      mostrarAviso(t('docente.aviso_campos'));
+      mostrarAviso(t('docente.aviso_campos_inicio'));
       return;
     }
     const resultado = await api('/api/v1/sesion/docente', {
