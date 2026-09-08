@@ -208,6 +208,52 @@ button:disabled {
   animation: entrada 0.2s ease;
 }
 
+/* Modal de confirmación */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 42, 36, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 50;
+  animation: modal-fondo-in 0.15s ease;
+}
+.modal {
+  width: 100%;
+  max-width: 380px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(31, 42, 36, 0.2);
+  padding: 1.5rem;
+  animation: modal-in 0.2s ease;
+}
+.modal h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+.modal p {
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+}
+.modal-botones {
+  display: flex;
+  gap: 0.6rem;
+}
+.modal-botones button {
+  margin-top: 0;
+}
+@keyframes modal-fondo-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Escala numérica */
 .escala-fila {
   display: flex;

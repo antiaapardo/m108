@@ -28,6 +28,66 @@ window.addEventListener('beforeunload', (e) => {
   return e.returnValue;
 });
 
+// Modal de confirmación con estilo propio. Devuelve una promesa que resuelve
+// a true si se confirma y a false si se cancela.
+function confirmarModal({ titulo, texto, confirmar }) {
+  return new Promise((resolve) => {
+    const fondo = document.createElement('div');
+    fondo.className = 'modal-fondo';
+    fondo.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true">
+        <h2>${titulo}</h2>
+        <p>${texto}</p>
+        <div class="modal-botones">
+          <button class="boton-secundario" data-accion="cancelar">${t('common.cancel')}</button>
+          <button data-accion="confirmar">${confirmar}</button>
+        </div>
+      </div>
+    `;
+
+    function cerrar(valor) {
+      fondo.remove();
+      document.removeEventListener('keydown', alPulsarTecla);
+      resolve(valor);
+    }
+    function alPulsarTecla(ev) {
+      if (ev.key === 'Escape') cerrar(false);
+    }
+
+    fondo.querySelector('[data-accion="cancelar"]').addEventListener('click', () => cerrar(false));
+    fondo.querySelector('[data-accion="confirmar"]').addEventListener('click', () => cerrar(true));
+    fondo.addEventListener('click', (ev) => {
+      if (ev.target === fondo) cerrar(false);
+    });
+    document.addEventListener('keydown', alPulsarTecla);
+
+    document.body.appendChild(fondo);
+  });
+}
+
+async function salirSinFinalizar() {
+  const confirmado = await confirmarModal({
+    titulo: t('docente.salir_titulo'),
+    texto: t('docente.aviso_salir'),
+    confirmar: t('docente.salir_confirmar'),
+  });
+  if (!confirmado) return;
+
+  if (sesionEnCurso) {
+    await api('/api/v1/sesion/docente', {
+      method: 'POST',
+      body: {
+        aula: sesionEnCurso.aula,
+        accion: 'actualizar',
+        sesion_id: sesionEnCurso.id,
+        marcar_fin: true,
+      },
+    });
+    sesionEnCurso = null;
+  }
+  mostrarFinSesion();
+}
+
 function iniciarPantallaDocente() {
   const { aula } = parametrosUrl();
 
@@ -135,9 +195,13 @@ function mostrarCamposManuales(sesion) {
     <p><strong>${t('docente.incidencias_label')}</strong></p>
     <input type="text" id="incidencias" placeholder="${t('docente.incidencias_placeholder')}" />
 
-    <button id="btn-marcar-fin">${t('docente.marcar_fin')}</button>  `;
+    <button id="btn-marcar-fin">${t('docente.marcar_fin')}</button>
+    <button id="btn-salir" class="boton-secundario" style="margin-top: 0.75rem;">${t('docente.salir')}</button>
+  `;
 
   activarSelectorIdioma(() => mostrarCamposManuales(sesion));
+
+  document.getElementById('btn-salir').addEventListener('click', salirSinFinalizar);
 
   document.getElementById('btn-marcar-fin').addEventListener('click', async () => {
     const elegidoTipo = document.querySelector('input[name="tipo_sesion"]:checked');
