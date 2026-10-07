@@ -287,5 +287,21 @@ def enviar_entrada(datos: EncuestaEntrada):
     conexion.close()
     return fila_resultado
 
+@app.get("/api/v1/sesion/{sesion_id}/contador")
+def contador_sesion(sesion_id: int):
+    conexion = obtener_conexion()
+    with conexion.cursor() as cur:
+        cur.execute(
+            "SELECT COUNT(*) AS n FROM encuesta_entrada WHERE sesion_id = %s",
+            (sesion_id,),
+        )
+        entradas = cur.fetchone()["n"]
+        cur.execute(
+            "SELECT COUNT(DISTINCT codigo) AS n FROM encuesta_salida WHERE sesion_id = %s",
+            (sesion_id,),
+        )
+        salidas = cur.fetchone()["n"]
+    conexion.close()
+    return {"entradas": entradas, "salidas": salidas}
 
 app.mount("/", StaticFiles(directory="../M108-frontend", html=True), name="frontend")

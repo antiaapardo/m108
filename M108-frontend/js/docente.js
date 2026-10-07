@@ -5,7 +5,37 @@ const valoresTipoSesion = ['Magistral/expositiva', 'Resolución de problemas', '
 const valoresEstructuraDescanso = ['Descanso a mitad de sesión', 'Sin descanso'];
 const valoresAsistencia = ['Asistencia habitual', 'Asistencia notablemente menor', 'Asistencia notablemente mayor'];
 
+let intervaloContador = null;
 
+function detenerContador() {
+  if (intervaloContador) {
+    clearInterval(intervaloContador);
+    intervaloContador = null;
+  }
+}
+
+function iniciarContador(sesionId) {
+  detenerContador();
+
+  const actualizar = async () => {
+    const entrada = document.getElementById('contador-entrada');
+    const salida = document.getElementById('contador-salida');
+    if (!entrada || !salida) {
+      detenerContador();
+      return;
+    }
+    try {
+      const datos = await api(`/api/v1/sesion/${sesionId}/contador`);
+      entrada.textContent = datos.entradas;
+      salida.textContent = datos.salidas;
+    } catch (e) {
+      // si falla una consulta, se mantiene el último valor y se reintenta en el siguiente ciclo
+    }
+  };
+
+  actualizar();
+  intervaloContador = setInterval(actualizar, 5000);
+}
 let sesionEnCurso = null;
 
 function cerrarSesionAlSalir() {
@@ -177,6 +207,18 @@ function mostrarCamposManuales(sesion) {
     <h1>${t('docente.campos_titulo', { aula: sesion.aula })}</h1>
     <p>${t('docente.campos_texto')}</p>
 
+       <div class="contador-encuestas">
+      <div class="contador-item">
+        <span class="contador-numero" id="contador-entrada">0</span>
+        <span class="contador-etiqueta">${t('docente.contador_entrada')}</span>
+      </div>
+      <div class="contador-item">
+        <span class="contador-numero" id="contador-salida">0</span>
+        <span class="contador-etiqueta">${t('docente.contador_salida')}</span>
+      </div>
+    </div>
+    <p class="contador-nota">${t('docente.contador_nota')}</p>
+
     <p><strong>${t('docente.tipo_sesion_label')}</strong></p>
     ${tipoSesionHtml}
 
@@ -199,6 +241,7 @@ function mostrarCamposManuales(sesion) {
   `;
 
   activarSelectorIdioma(() => mostrarCamposManuales(sesion));
+  iniciarContador(sesion.id);
 
   document.getElementById('btn-salir').addEventListener('click', salirSinFinalizar);
 
@@ -229,6 +272,7 @@ function mostrarCamposManuales(sesion) {
     });
     sesionEnCurso = null;
     mostrarFinSesion();
+    detenerContador();
   });
 }
 

@@ -145,6 +145,9 @@ const traducciones = {
       aviso_campos: 'Rellena todos los campos antes de finalizar la sesión.',
       aviso_guardado: 'Guardado.',
       sesion_finalizada: 'Sesión finalizada. Gracias.',
+      contador_entrada: 'Entradas',
+      contador_salida: 'Salidas',
+      contador_nota: 'Dato informativo: número de encuestas enviadas por el alumnado en esta sesión. Se actualiza solo.',
     },
   },
   en: {
@@ -289,6 +292,9 @@ const traducciones = {
       aviso_campos: 'Fill in all the fields before ending the session.',
       aviso_guardado: 'Saved.',
       sesion_finalizada: 'Session finished. Thank you.',
+      contador_entrada: 'Arrivals',
+      contador_salida: 'Departures',
+      contador_nota: 'For information only: number of surveys submitted by students in this session. Updates automatically.',
     },
   },
   gl: {
@@ -433,6 +439,9 @@ const traducciones = {
       aviso_campos: 'Cobre todos os campos antes de rematar a sesión.',
       aviso_guardado: 'Gardado.',
       sesion_finalizada: 'Sesión finalizada. Grazas.',
+      contador_entrada: 'Entradas',
+      contador_salida: 'Saídas',
+      contador_nota: 'Dato informativo: número de enquisas enviadas polo alumnado nesta sesión. Actualízase soa.',
     },
   },
 };

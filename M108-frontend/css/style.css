@@ -359,3 +359,32 @@ button:disabled {
 .pantalla-gracias p {
   font-size: 1rem;
 }
+.contador-encuestas {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.contador-item {
+  flex: 1;
+  text-align: center;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 0.5rem;
+}
+.contador-numero {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent);
+}
+.contador-etiqueta {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.contador-nota {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: -0.75rem 0 1.5rem;
+}
