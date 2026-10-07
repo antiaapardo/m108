@@ -1,5 +1,5 @@
 const DOCENTE_KEY = 'lsef_docente';
-const docentesDisponibles = ['Raquel', 'Pablo'];
+const docentesDisponibles = ['Raquel', 'Pablo', 'Moises'];
 
 const valoresTipoSesion = ['Magistral/expositiva', 'Resolución de problemas', 'Combinada'];
 const valoresEstructuraDescanso = ['Descanso a mitad de sesión', 'Sin descanso'];
@@ -28,8 +28,7 @@ window.addEventListener('beforeunload', (e) => {
   return e.returnValue;
 });
 
-// Modal de confirmación con estilo propio. Devuelve una promesa que resuelve
-// a true si se confirma y a false si se cancela.
+
 function confirmarModal({ titulo, texto, confirmar }) {
   return new Promise((resolve) => {
     const fondo = document.createElement('div');
