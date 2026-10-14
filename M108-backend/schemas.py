@@ -40,6 +40,8 @@ class EncuestaEntrada(BaseModel):
     kss_entrada: Optional[int] = None
     actividad_reciente: Optional[str] = None
     nivel_vestimenta: Optional[str] = None
+    pvt_mediana_ms: Optional[float] = None
+    pvt_lapsos: Optional[int] = None
 
 class EncuestaSalida(BaseModel):
     sesion_id: int

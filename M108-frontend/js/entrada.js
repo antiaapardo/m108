@@ -6,6 +6,7 @@ const preguntasEntrada = [
   { id: 'PA5', tipo: 'escala', min: 1, max: 9 },
   { id: 'PA6', tipo: 'radio', valores: ['Sentada/o, en reposo (clase anterior, estudiando, esperando)', 'Caminando de forma tranquila (desplazamiento entre aulas)', 'Caminando con prisa o subiendo escaleras', 'Actividad física más intensa (deporte, gimnasio)'] },
   { id: 'PA7', tipo: 'radio', valores: ['Ligera (camiseta de manga corta, sin capas adicionales)', 'Media (manga larga o una capa adicional ligera, ej: sudadera)', 'Abrigada (varias capas, jersey gordo, chaqueta puesta en el aula)'] },
+  { id: 'PA8', tipo: 'pvt' },
 ];
 
 const respuestasEntrada = {};
@@ -33,6 +34,7 @@ function renderPasoEntrada() {
   const clave = `entrada.preguntas.${pregunta.id}`;
   const progreso = t('common.progress', { n: pasoEntrada + 1, total: preguntasEntrada.length });
   const respuestaPrevia = respuestasEntrada[pregunta.id];
+  const esPvt = pregunta.tipo === 'pvt';
 
   let camposHtml = '';
   if (pregunta.tipo === 'escala') {
@@ -47,6 +49,12 @@ function renderPasoEntrada() {
       <div class="escala-etiquetas"><span>${traduccion.etiquetaMin}</span><span>${traduccion.etiquetaMax}</span></div>
       <input type="hidden" id="valor-${pregunta.id}" value="${respuestaPrevia ?? ''}" />
     `;
+  } else if (esPvt) {
+    camposHtml = `
+      <p>${t('salida.pvt_instrucciones')}</p>
+      <div class="pvt-caja" id="pvt-caja">${t('salida.pvt_preparate')}</div>
+      <input type="hidden" id="valor-${pregunta.id}" />
+    `;
   } else {
     const etiquetas = t(`${clave}.opciones`);
     camposHtml = pregunta.valores.map((valor, i) => `
@@ -55,11 +63,11 @@ function renderPasoEntrada() {
   }
 
   appEl.innerHTML = `
-    ${selectorIdiomaHtml()}
+    ${esPvt ? '' : selectorIdiomaHtml()}
     <p>${progreso}</p>
     <h2>${t(`${clave}.titulo`)}</h2>
     <div class="pregunta-wrap">${camposHtml}</div>
-    <button id="btn-siguiente-entrada">${pasoEntrada === preguntasEntrada.length - 1 ? t('common.submit') : t('common.next')}</button>
+    <button id="btn-siguiente-entrada" ${esPvt ? 'disabled' : ''}>${pasoEntrada === preguntasEntrada.length - 1 ? t('common.submit') : t('common.next')}</button>
     ${pasoEntrada > 0 ? `<button id="btn-atras-entrada" class="boton-secundario">${t('common.back')}</button>` : ''}
   `;
 
@@ -82,9 +90,16 @@ function renderPasoEntrada() {
     });
   }
 
+  if (esPvt) {
+    ejecutarPVT(document.getElementById('pvt-caja'), (resultado) => {
+      document.getElementById(`valor-${pregunta.id}`).value = JSON.stringify(resultado);
+      document.getElementById('btn-siguiente-entrada').disabled = false;
+    });
+  }
+
   document.getElementById('btn-siguiente-entrada').addEventListener('click', async () => {
     let valor;
-    if (pregunta.tipo === 'escala') {
+    if (pregunta.tipo === 'escala' || esPvt) {
       valor = document.getElementById(`valor-${pregunta.id}`).value;
     } else {
       const elegido = document.querySelector(`input[name="campo-${pregunta.id}"]:checked`);
@@ -108,6 +123,7 @@ function renderPasoEntrada() {
 
 async function enviarEntrada() {
   const codigo = localStorage.getItem(CODIGO_KEY);
+  const pvt = JSON.parse(respuestasEntrada.PA8);
   const resultado = await api('/api/v1/sesion/entrada', {
     method: 'POST',
     body: {
@@ -123,6 +139,8 @@ async function enviarEntrada() {
       kss_entrada: Number(respuestasEntrada.PA5),
       actividad_reciente: respuestasEntrada.PA6,
       nivel_vestimenta: respuestasEntrada.PA7,
+      pvt_mediana_ms: pvt.pvt_mediana_ms,
+      pvt_lapsos: pvt.pvt_lapsos,
     },
   });
   mostrarGraciasEntrada(resultado.id);

@@ -271,15 +271,15 @@ def enviar_entrada(datos: EncuestaEntrada):
             INSERT INTO encuesta_entrada
                 (sesion_id, codigo, aula, fila, asiento, primera_clase_dia,
                  tiempo_en_uni, calidad_sueno_noche, cafeina_3h, kss_entrada,
-                 actividad_reciente, nivel_vestimenta)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 actividad_reciente, nivel_vestimenta, pvt_mediana_ms, pvt_lapsos)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, respondido_en
             """,
             (
                 datos.sesion_id, datos.codigo, datos.aula, datos.fila, datos.asiento,
                 datos.primera_clase_dia, datos.tiempo_en_uni, datos.calidad_sueno_noche,
                 datos.cafeina_3h, datos.kss_entrada, datos.actividad_reciente,
-                datos.nivel_vestimenta,
+                datos.nivel_vestimenta, datos.pvt_mediana_ms, datos.pvt_lapsos,
             ),
         )
         fila_resultado = cur.fetchone()
