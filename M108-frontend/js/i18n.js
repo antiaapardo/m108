@@ -85,6 +85,7 @@ const traducciones = {
           opciones: ['Sentada/o, en reposo (clase anterior, estudiando, esperando)', 'Caminando de forma tranquila (desplazamiento entre aulas)', 'Caminando con prisa o subiendo escaleras', 'Actividad física más intensa (deporte, gimnasio)'] },
         PA7: { titulo: '¿Cómo describirías tu vestimenta en este momento?',
           opciones: ['Ligera (camiseta de manga corta, sin capas adicionales)', 'Media (manga larga o una capa adicional ligera, ej: sudadera)', 'Abrigada (varias capas, jersey gordo, chaqueta puesta en el aula)'] },
+        PA8: { titulo: 'Prueba breve de tiempo de reacción' },
       },
     },
     salida: {
@@ -232,6 +233,7 @@ const traducciones = {
           opciones: ['Sitting, at rest (previous class, studying, waiting)', 'Walking calmly (moving between classrooms)', 'Walking hurriedly or climbing stairs', 'More intense physical activity (sport, gym)'] },
         PA7: { titulo: 'How would you describe your clothing right now?',
           opciones: ['Light (short-sleeved t-shirt, no extra layers)', 'Medium (long sleeves or one light extra layer, e.g. a hoodie)', 'Warm (several layers, a thick jumper, jacket worn in the classroom)'] },
+        PA8: { titulo: 'Brief reaction-time test' },
       },
     },
     salida: {
@@ -379,6 +381,7 @@ const traducciones = {
           opciones: ['Sentada/o, en repouso (clase anterior, estudando, agardando)', 'Camiñando de forma tranquila (desprazamento entre aulas)', 'Camiñando con présa ou subindo escaleiras', 'Actividade física máis intensa (deporte, ximnasio)'] },
         PA7: { titulo: 'Como describirías a túa roupa neste momento?',
           opciones: ['Lixeira (camiseta de manga curta, sen capas adicionais)', 'Media (manga longa ou unha capa adicional lixeira, p.ex.: sudadeira)', 'Abrigada (varias capas, xersei groso, chaqueta posta na aula)'] },
+        PA8: { titulo: 'Proba breve de tempo de reacción' },
       },
     },
     salida: {
