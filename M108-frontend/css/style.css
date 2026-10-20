@@ -208,6 +208,15 @@ button:disabled {
   animation: entrada 0.2s ease;
 }
 
+/* Aviso de sesión en curso o sin cerrar (panel docente) */
+.aviso-sesion {
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
 /* Modal de confirmación */
 .modal-fondo {
   position: fixed;

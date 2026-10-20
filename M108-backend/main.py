@@ -1,6 +1,7 @@
 from fastapi import FastAPI
+import psycopg
 from database import obtener_conexion
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from schemas import EncuestaBasal, SesionDocente, EncuestaEntrada, EncuestaSalida, KeystrokeSignal
 from codigos import generar_codigo_con_checksum, validar_codigo
 from fastapi.staticfiles import StaticFiles
@@ -85,6 +86,7 @@ def calcular_minutos_desde_anterior(aula: str, momento: datetime) -> int | None:
             """
             SELECT hora_fin_real FROM sesion
             WHERE aula = %s AND hora_fin_real IS NOT NULL AND hora_fin_real < %s
+              AND hora_fin_real > hora_inicio_real
             ORDER BY hora_fin_real DESC
             LIMIT 1
             """,
@@ -98,6 +100,45 @@ def calcular_minutos_desde_anterior(aula: str, momento: datetime) -> int | None:
 
     diferencia = momento - fila["hora_fin_real"]
     return round(diferencia.total_seconds() / 60)
+
+HORAS_SESION_ABANDONADA = 4
+
+
+def buscar_sesion_abierta(aula: str):
+    conexion = obtener_conexion()
+    with conexion.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, aula, fecha, hora_inicio_real, docente, materia
+            FROM sesion
+            WHERE aula = %s AND hora_fin_real IS NULL
+            ORDER BY hora_inicio_real DESC
+            LIMIT 1
+            """,
+            (aula,),
+        )
+        fila = cur.fetchone()
+    conexion.close()
+    if fila:
+        antiguedad = datetime.now(timezone.utc) - fila["hora_inicio_real"]
+        fila["abandonada"] = antiguedad > timedelta(hours=HORAS_SESION_ABANDONADA)
+    return fila
+
+
+def cerrar_sesiones_abiertas_incompletas(aula: str):
+    conexion = obtener_conexion()
+    with conexion.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE sesion
+            SET hora_fin_real = hora_inicio_real, incompleta = TRUE
+            WHERE aula = %s AND hora_fin_real IS NULL
+            """,
+            (aula,),
+        )
+        conexion.commit()
+    conexion.close()
+
 
 @app.post("/api/v1/sesion/docente")
 def gestionar_sesion_docente(datos: SesionDocente):
@@ -116,14 +157,15 @@ def gestionar_sesion_docente(datos: SesionDocente):
                     estructura_descanso = COALESCE(%s, estructura_descanso),
                     num_estudiantes = COALESCE(%s, num_estudiantes),
                     asistencia_tipica = COALESCE(%s, asistencia_tipica),
-                    incidencias = COALESCE(%s, incidencias)
+                    incidencias = COALESCE(%s, incidencias),
+                    incompleta = incompleta OR %s
                 WHERE id = %s
                 RETURNING *
                 """,
                 (
                     marcar_fin, datos.tipo_sesion, datos.estructura_descanso,
                     datos.num_estudiantes, datos.asistencia_tipica, datos.incidencias,
-                    datos.sesion_id,
+                    datos.incompleta, datos.sesion_id,
                 ),
             )
             fila = cur.fetchone()
@@ -133,22 +175,37 @@ def gestionar_sesion_docente(datos: SesionDocente):
             return {"error": "sesion_no_encontrada"}
         return fila
 
+    # accion == "inicio": una sola sesión abierta por aula
+    abierta = buscar_sesion_abierta(datos.aula)
+    if abierta:
+        if not abierta["abandonada"]:
+            return {**abierta, "reanudada": True}
+        if not datos.forzar_nueva:
+            return {"error": "sesion_abandonada", "sesion": abierta}
+        cerrar_sesiones_abiertas_incompletas(datos.aula)
+
     materia = datos.materia or resolver_materia(datos.aula, momento)
     minutos_anterior = calcular_minutos_desde_anterior(datos.aula, momento)
 
     conexion = obtener_conexion()
-    with conexion.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO sesion (aula, fecha, hora_inicio_real, docente, materia, minutos_desde_anterior)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id, aula, fecha, hora_inicio_real, docente, materia, minutos_desde_anterior
-            """,
-            (datos.aula, momento.date(), momento, datos.docente, materia, minutos_anterior),
-        )
-        fila = cur.fetchone()
-        conexion.commit()
-    conexion.close()
+    try:
+        with conexion.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO sesion (aula, fecha, hora_inicio_real, docente, materia, minutos_desde_anterior)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id, aula, fecha, hora_inicio_real, docente, materia, minutos_desde_anterior
+                """,
+                (datos.aula, momento.date(), momento, datos.docente, materia, minutos_anterior),
+            )
+            fila = cur.fetchone()
+            conexion.commit()
+    except psycopg.errors.UniqueViolation:
+        # otro escaneo casi simultáneo abrió la sesión primero (índice una_abierta_por_aula): se reanuda esa
+        conexion.rollback()
+        return {**buscar_sesion_abierta(datos.aula), "reanudada": True}
+    finally:
+        conexion.close()
     return fila
 
 
@@ -241,23 +298,10 @@ def consultar_estado(codigo: str):
         conexion.close()
 
 @app.get("/api/v1/sesion/activa")
-def sesion_activa(aula: str):
-    conexion = obtener_conexion()
-    with conexion.cursor() as cur:
-        cur.execute(
-            """
-            SELECT id, aula, fecha, hora_inicio_real, docente, materia
-            FROM sesion
-            WHERE aula = %s AND hora_fin_real IS NULL
-            ORDER BY hora_inicio_real DESC
-            LIMIT 1
-            """,
-            (aula,),
-        )
-        fila = cur.fetchone()
-    conexion.close()
-
-    if not fila:
+def sesion_activa(aula: str, incluir_abandonada: bool = False):
+    # el alumnado no debe responder en una sesión abandonada; el docente sí la ve para poder cerrarla
+    fila = buscar_sesion_abierta(aula)
+    if not fila or (fila["abandonada"] and not incluir_abandonada):
         return {"error": "sin_sesion_activa"}
     return fila
 

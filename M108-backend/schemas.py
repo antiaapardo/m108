@@ -26,6 +26,8 @@ class SesionDocente(BaseModel):
     asistencia_tipica: Optional[str] = None
     incidencias: Optional[str] = None
     marcar_fin: Optional[bool] = False
+    forzar_nueva: bool = False
+    incompleta: bool = False
 
 class EncuestaEntrada(BaseModel):
     sesion_id: int

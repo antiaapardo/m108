@@ -38,18 +38,9 @@ function iniciarContador(sesionId) {
 }
 let sesionEnCurso = null;
 
-function cerrarSesionAlSalir() {
-  if (!sesionEnCurso) return;
-  const cuerpo = JSON.stringify({
-    aula: sesionEnCurso.aula,
-    accion: 'actualizar',
-    sesion_id: sesionEnCurso.id,
-    marcar_fin: true,
-  });
-  navigator.sendBeacon('/api/v1/sesion/docente', new Blob([cuerpo], { type: 'application/json' }));
+function formatearHora(fechaIso) {
+  return new Date(fechaIso).toLocaleTimeString(idiomaActual, { hour: '2-digit', minute: '2-digit' });
 }
-
-window.addEventListener('pagehide', cerrarSesionAlSalir);
 
 window.addEventListener('beforeunload', (e) => {
   if (!sesionEnCurso) return;
@@ -110,14 +101,16 @@ async function salirSinFinalizar() {
         accion: 'actualizar',
         sesion_id: sesionEnCurso.id,
         marcar_fin: true,
+        incompleta: true,
       },
     });
     sesionEnCurso = null;
   }
+  detenerContador();
   mostrarFinSesion();
 }
 
-function iniciarPantallaDocente() {
+async function iniciarPantallaDocente() {
   const { aula } = parametrosUrl();
 
   if (!aula) {
@@ -126,15 +119,24 @@ function iniciarPantallaDocente() {
     return;
   }
 
+  // la sesión abierta pertenece al aula, no al navegador: si ya hay una, se retoma
+  const abierta = await api(`/api/v1/sesion/activa?aula=${encodeURIComponent(aula)}&incluir_abandonada=true`);
+  if (!abierta.error && !abierta.abandonada) {
+    sesionEnCurso = abierta;
+    mostrarCamposManuales(abierta);
+    return;
+  }
+  const abandonada = abierta.error ? null : abierta;
+
   const docenteGuardado = localStorage.getItem(DOCENTE_KEY);
   if (!docenteGuardado) {
-    mostrarSelectorDocente(aula);
+    mostrarSelectorDocente(aula, abandonada);
   } else {
-    mostrarInicioSesion(aula, docenteGuardado);
+    mostrarInicioSesion(aula, docenteGuardado, abandonada);
   }
 }
 
-function mostrarSelectorDocente(aula) {
+function mostrarSelectorDocente(aula, abandonada) {
   const opcionesHtml = docentesDisponibles.map((nombre) => `
     <label class="opcion"><input type="radio" name="docente" value="${nombre}" /> ${nombre}</label>
   `).join('');
@@ -147,7 +149,7 @@ function mostrarSelectorDocente(aula) {
     <button id="btn-confirmar-docente">${t('docente.confirmar')}</button>
   `;
 
-  activarSelectorIdioma(() => mostrarSelectorDocente(aula));
+  activarSelectorIdioma(() => mostrarSelectorDocente(aula, abandonada));
   document.getElementById('btn-confirmar-docente').addEventListener('click', () => {
     const elegido = document.querySelector('input[name="docente"]:checked');
     if (!elegido) {
@@ -155,14 +157,22 @@ function mostrarSelectorDocente(aula) {
       return;
     }
     localStorage.setItem(DOCENTE_KEY, elegido.value);
-    mostrarInicioSesion(aula, elegido.value);
+    mostrarInicioSesion(aula, elegido.value, abandonada);
   });
 }
 
-function mostrarInicioSesion(aula, docente) {
+function mostrarInicioSesion(aula, docente, abandonada = null) {
+  const avisoAbandonada = abandonada ? `
+    <p class="aviso-sesion">${t('docente.sesion_abandonada', {
+      docente: abandonada.docente,
+      fecha: new Date(abandonada.hora_inicio_real).toLocaleDateString(idiomaActual),
+      hora: formatearHora(abandonada.hora_inicio_real),
+    })}</p>` : '';
+
   appEl.innerHTML = `
     ${selectorIdiomaHtml()}
     <h1>${t('docente.sesion_titulo', { aula })}</h1>
+    ${avisoAbandonada}
     <p>${t('docente.sesion_texto', { docente })}</p>
 
     <p><strong>${t('docente.materia_label')}</strong></p>
@@ -171,7 +181,7 @@ function mostrarInicioSesion(aula, docente) {
     <button id="btn-iniciar-sesion">${t('docente.iniciar_sesion')}</button>
   `;
 
-  activarSelectorIdioma(() => mostrarInicioSesion(aula, docente));
+  activarSelectorIdioma(() => mostrarInicioSesion(aula, docente, abandonada));
   document.getElementById('btn-iniciar-sesion').addEventListener('click', async () => {
     const materia = document.getElementById('materia').value.trim();
     if (!materia) {
@@ -180,8 +190,13 @@ function mostrarInicioSesion(aula, docente) {
     }
     const resultado = await api('/api/v1/sesion/docente', {
       method: 'POST',
-      body: { aula, docente, materia, accion: 'inicio' },
+      body: { aula, docente, materia, accion: 'inicio', forzar_nueva: Boolean(abandonada) },
     });
+    if (resultado.error === 'sesion_abandonada') {
+      // otra pestaña/dispositivo dejó una sesión abandonada entre medias: se avisa antes de cerrarla
+      mostrarInicioSesion(aula, docente, resultado.sesion);
+      return;
+    }
     sesionEnCurso = resultado;
     mostrarCamposManuales(resultado);
   });
@@ -205,6 +220,10 @@ function mostrarCamposManuales(sesion) {
   appEl.innerHTML = `
     ${selectorIdiomaHtml()}
     <h1>${t('docente.campos_titulo', { aula: sesion.aula })}</h1>
+    ${sesion.reanudada || sesion.abandonada === false ? `<p class="aviso-sesion">${t('docente.sesion_en_curso', {
+      docente: sesion.docente,
+      hora: formatearHora(sesion.hora_inicio_real),
+    })}</p>` : ''}
     <p>${t('docente.campos_texto')}</p>
 
        <div class="contador-encuestas">
@@ -271,8 +290,8 @@ function mostrarCamposManuales(sesion) {
       },
     });
     sesionEnCurso = null;
-    mostrarFinSesion();
     detenerContador();
+    mostrarFinSesion();
   });
 }
 

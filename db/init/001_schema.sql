@@ -46,8 +46,12 @@ CREATE TABLE sesion (
     num_estudiantes INT,
     asistencia_tipica TEXT,
     minutos_desde_anterior INT,
-    incidencias     TEXT
+    incidencias     TEXT,
+    incompleta      BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+-- como máximo una sesión abierta por aula
+CREATE UNIQUE INDEX una_abierta_por_aula ON sesion (aula) WHERE hora_fin_real IS NULL;
 
 CREATE TABLE encuesta_entrada (
     id              BIGSERIAL PRIMARY KEY,
